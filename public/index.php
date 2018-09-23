@@ -2,9 +2,9 @@
 
 use Interop\Http\ServerMiddleware\DelegateInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Expressive\AppFactory;
 use Zend\ServiceManager\ServiceManager;
+use Movies\Middleware\RenderMoviesMiddleware;
 
 
 /**
@@ -42,35 +42,15 @@ $container->setFactory('MovieData', function() {
 $app = AppFactory::create($container);
 
 /**
- * An alternate way of type hinting the parameters:
- *
  * @var ServerRequestInterface $request
  * @var DelegateInterface $delegate
  *
  * Define a GET route.
- * Pass the get method the route's path and handler (anonymous function).
+ * New-up a RenderMoviesMiddleware class and pass its constructor
+ * the movie data from the container.
  */
-$app->get('/', function ($request, $delegate) use($container) {
-    /**
-     * The Middleware first calls an invokable, Movies\BasicRenderer.php,
-     * which handles rendering the movie data (by retrieving the MovieData
-     * service from the container) in tabular format. It stores the result
-     * in a variable called $renderer.
-     *
-     * The syntax is a PHP 7 shorthand way of doing this:
-     * $basicRenderer = new \Movies\BasicRenderer();
-     * $movieData = $container->get('MovieData');
-     * $renderer = $basicRenderer($movieData);
-     *
-     * Still not sure about this. If above is true the shorthand should be:
-     * $renderer = new \Movies\BasicRenderer($container->get('MovieData'));
-     * i.e. just pass the returned MovieData to the BasicRenderer() invokable.
-     */
-    $renderer = (new \Movies\BasicRenderer())(
-        $container->get('MovieData')
-    );
-    return new HtmlResponse($renderer);
-});
+
+$app->get('/', (new RenderMoviesMiddleware($container->get('MovieData'))));
 
 /**
  * Respectively, these ensure the routes exist in the routing table, and have
