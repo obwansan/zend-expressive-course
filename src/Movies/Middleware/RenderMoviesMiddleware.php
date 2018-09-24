@@ -43,9 +43,14 @@ class RenderMoviesMiddleware
      */
     public function __invoke(ServerRequestInterface $request, DelegateInterface $delegate)
     {
+        /**
+         * Don't understand why this seems to use the BasicRenderer's construct
+         * method rather than invoke...when it only has an invoke method!
+         */
         $renderer = (new BasicRenderer())(
             $this->movieData
         );
+        // Renders the string returned by BasicRenderer into HTML
         return new HtmlResponse($renderer);
     }
 }

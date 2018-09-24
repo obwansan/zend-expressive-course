@@ -22,16 +22,12 @@ $container = new ServiceManager();
 
 /**
  * Register a service with the container.
- * 'MovieData' is the name of the service.
- * The anonymous function provides the data for the service.
- * The service in the container will be in the format:
- * 'MovieData'  => 'data/movies.php'
- * So, a request for the service, such as $container->get('MovieData')
- * will return 'data/movies.php'
+ * Maps the name of the class to the factory that creates it.
  */
-$container->setFactory('MovieData', function() {
-    return include 'data/movies.php';
-});
+$container->setFactory(
+    RenderMoviesMiddleware::class,
+    RenderMoviesMiddlewareFactory::class
+);
 
 /**
  * Instantiate a new Application object by using AppFactory’s
@@ -42,15 +38,14 @@ $container->setFactory('MovieData', function() {
 $app = AppFactory::create($container);
 
 /**
- * @var ServerRequestInterface $request
- * @var DelegateInterface $delegate
- *
  * Define a GET route.
- * New-up a RenderMoviesMiddleware class and pass its constructor
- * the movie data from the container.
+ * when the default route '/' is requested, $app attempts to retrieve
+ * an instance of RenderMoviesMiddleware from the DI container. It sees
+ * that RenderMoviesMiddleware maps to RenderMoviesMiddlewareFactory,
+ * which returns the fully instantiated RenderMoviesMiddleware object, 
+ * containing the movie data.
  */
-
-$app->get('/', (new RenderMoviesMiddleware($container->get('MovieData'))));
+$app->get('/', RenderMoviesMiddleware::class);
 
 /**
  * Respectively, these ensure the routes exist in the routing table, and have

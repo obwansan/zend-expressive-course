@@ -25,7 +25,8 @@ class BasicRenderer
     public function __invoke($movieData)
     {
         $tableBody = '';
-
+        // sprintf returns a string with the args inserted, in order, into
+        // the %s placeholders in self::BODY_TEMPLATE
         foreach ($movieData as $movie) {
             $tableBody .= sprintf(
                 self::BODY_TEMPLATE,
