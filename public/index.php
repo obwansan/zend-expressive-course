@@ -1,33 +1,25 @@
 <?php
 
-use Interop\Http\ServerMiddleware\DelegateInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Zend\Expressive\AppFactory;
-use Zend\ServiceManager\ServiceManager;
-use Movies\Middleware\RenderMoviesMiddleware;
+use Zend\Expressive\Application;
 
-
-/**
- * __DIR__ is the name of directory containing this file.
- * dirname() returns the directory name from a path.
- * chdir() changes PHP's current directory to directory passed to it.
- * So chdir(dirname(__DIR__)); changes the current working directory (CWD)
- * to be the directory containing this file.
- */
 chdir(dirname(__DIR__));
 require 'vendor/autoload.php';
 
 // Create a new DI container.
-$container = new ServiceManager();
+$container = include 'config/container.php';
 
 /**
  * Register a service with the container.
  * Maps the name of the class to the factory that creates it.
  */
-$container->setFactory(
-    RenderMoviesMiddleware::class,
-    RenderMoviesMiddlewareFactory::class
-);
+//$container->setFactory(
+//    RenderMoviesMiddleware::class,
+//    RenderMoviesMiddlewareFactory::class
+//);
+
+$container->setFactory('MovieData', function() {
+    return include 'data/movies.php';
+});
 
 /**
  * Instantiate a new Application object by using AppFactory’s
@@ -35,17 +27,10 @@ $container->setFactory(
  * Expressive application. They contain, at their most basic, a router,
  * and a DI container.
  */
-$app = AppFactory::create($container);
+//$app = AppFactory::create($container);
 
-/**
- * Define a GET route.
- * when the default route '/' is requested, $app attempts to retrieve
- * an instance of RenderMoviesMiddleware from the DI container. It sees
- * that RenderMoviesMiddleware maps to RenderMoviesMiddlewareFactory,
- * which returns the fully instantiated RenderMoviesMiddleware object, 
- * containing the movie data.
- */
-$app->get('/', RenderMoviesMiddleware::class);
+/** @var Application $app */
+$app = $container->get(Application::class);
 
 /**
  * Respectively, these ensure the routes exist in the routing table, and have
@@ -53,5 +38,8 @@ $app->get('/', RenderMoviesMiddleware::class);
  */
 $app->pipeRoutingMiddleware();
 $app->pipeDispatchMiddleware();
+
+require 'config/pipeline.php';
+require 'config/routes.php';
 
 $app->run();
